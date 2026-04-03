@@ -21,7 +21,7 @@ class Solution
         }
         vector<string> to_match;
         string temp;
-        for(auto i : s)
+        for(auto i : p)
         {
             if(i == '*')
             {
@@ -32,74 +32,72 @@ class Solution
             temp.push_back(i);
         }
         to_match.push_back(temp);
-        int left = 0, right = 0;
-        int idx = 0;
 
-        if(!to_match[0].empty())
+        if(temp != "")
         {
-            for(int i = 0; i < to_match[0].size(); i++)
-            {
-                if(to_match[0][i] == '?')
-                    continue;
-                if(to_match[0][i] == s[i])
-                    continue;
+            if(s.size() < temp.size())
                 return false;
-            }
-            idx = 1;
-        }
-        if(!to_match.back().empty())
-        {
-            auto start = s.size() - to_match[0].size();
-            for(int i = 0; i < to_match[0].size(); i++)
+            temp = s.substr(s.size() - to_match.back().size());
+            for(int i = 0; i < temp.size(); i++)
             {
-                if(to_match[0][i] == '?')
-                    continue;
-                if(to_match[0][i] == s[i + start])
-                    continue;
-                return false;
+                if(to_match.back()[i] != '?' && temp[i] != to_match.back()[i])
+                    return false;
             }
             to_match.pop_back();
-            s.resize(s.size() - to_match.back().size());
+            // if(to_match.empty() && s != temp)
+            //     return false;
+            s.resize(s.size() - temp.size());
         }
-        while(right < s.size()  && idx < to_match.size())
+        if(to_match.empty() && s.empty())
+            return true;
+
+        int start_label = -1;
+        int left = 0;
+        
+        for(auto i : to_match)
         {
-            if(to_match[idx].empty())
+            bool label = false;
+            if(i == "")
             {
-                if(idx = 0)
-                {
-                    idx++;
-                }
-                else 
-                {
-                    idx++;
-                    break;
-                }
-            }
-            if(left + to_match[idx].size() >= s.size())
-                break;
-            int i = 0;
-            for(i = 0; i < to_match[idx].size(); i++)
-            {
-                if(s[left + i] != to_match[idx][i])
-                {
-                    i--;
-                    break;
-                }
-            }
-            if(i < to_match[idx].size() - 1)
-            {
-                left++;
                 continue;
             }
-            idx++;
-            left += i + 1;
+            for(int j = left; j + i.size() <= s.size(); j++)
+            {
+                label = true;
+                for(int k = 0; k < i.size(); k++)
+                {
+                    if(i[k] == '?')
+                        continue;
+                    if(i[k] == s[j + k])
+                        continue;
+                    label = false;
+                    break;
+                }
+                if(label)
+                {
+                    if(start_label == -1)
+                        start_label = j;
+                    left = j + i.size();
+                    break;
+                }
+            }
+            if(!label)
+                return false;
         }
+
+        if(to_match[0] != "")
+        {
+            if(start_label != 0)
+                return false;
+        }
+
+        return true;
     }
 };
 
 int main()
 {
-    string s = "aa", p = "a";
+    string s = "aaab", p = "b**";
     Solution solution;
     bool res = solution.isMatch(s, p);
     printf("%d", res);
